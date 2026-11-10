@@ -1,6 +1,6 @@
 // build-notes.mjs — 从 ielts-vocab-data.md / ielts-synonyms.md 生成 notes.html
 // 每晚同步任务自动运行；也可手动执行：node build-notes.mjs
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 
 const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const inline = s => esc(s).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
@@ -151,5 +151,10 @@ for(const b of document.querySelectorAll('.tab'))b.addEventListener('click',()=>
  document.getElementById('v').hidden=b.dataset.t!=='v';document.getElementById('s').hidden=b.dataset.t!=='s'});
 </script></body></html>`;
 
-writeFileSync('notes.html', html);
-console.log(`notes.html 生成完成：生词 ${vocab.sections.length} 个章节 / 同义替换 ${syn.blocks.length} 个板块，共 ${html.length} 字符`);
+const normalize = s => s.replace(/更新于 [^<]*/, '更新于 ');
+if (existsSync('notes.html') && normalize(readFileSync('notes.html', 'utf8')) === normalize(html)) {
+  console.log('notes.html 无实质变化，跳过写入');
+} else {
+  writeFileSync('notes.html', html);
+  console.log(`notes.html 生成完成：生词 ${vocab.sections.length} 个章节 / 同义替换 ${syn.blocks.length} 个板块，共 ${html.length} 字符`);
+}
